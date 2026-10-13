@@ -5201,51 +5201,13 @@
       let timers = [], homeEffectsStop = null; const clr = () => { timers.forEach(clearInterval); timers = []; if (homeEffectsStop) { homeEffectsStop(); homeEffectsStop = null } }, head = (ti, sub, pill = '') => `<div class="ref-top"><div><h1 class="ref-title">${ti}</h1><p class="ref-sub">${sub}</p></div>${pill ? `<span class="ref-pill">${pill}</span>` : ''}</div>`;
       const go = v => { view = v; render() };
       function home() {
-        const U = window.BR_USER || { name: 'Guest' }, ix = idxs(), pk = k => ix[k % (ix.length || 1)];
-        const answered = (ST.qa || 0) + (ST.la || 0), correct = (ST.qc || 0) + (ST.lc || 0), reviewed = (ST.fk || 0) + (ST.fr || 0);
-        const icon = name => `<i data-lucide="${name}" aria-hidden="true"></i>`;
-        const modes = [
-          ['quiz', pk(2), 'Quiz Mode', 'Put your knowledge into practice. Identify structures and learn from every answer.', '01', 'Start a quiz', 'clipboard-check'],
-          ['flashcards', pk(9), 'Flashcards', 'Build lasting recall. Flip, remember, and revisit the structures that need more practice.', '02', 'Review flashcards', 'layers'],
-          ['labexam', pk(17), 'Lab Practice', 'Bring it all together. Practice identifying anatomy in a timed session.', '03', 'Enter the lab', 'book-open']
-        ];
+        const U = window.BR_USER || { name: 'Guest' }, ix = idxs(), n = ix.length || 1, pk = k => ix[k % n];
+        const cards = [['quiz', pk(2), () => '', 'Quiz Mode'], ['flashcards', pk(9), pinF, 'Flashcard'], ['labexam', pk(17), pinE, 'Lab Practice']];
         document.body.classList.add('br-home-page');
-        app.innerHTML = `<section class="ref-window br-home">
-          <div class="br-home-top"><div class="br-home-greeting"><span class="br-home-presence"></span>Welcome back, <strong id="br-home-name"></strong></div><button class="br-home-profile" id="bm-edit" type="button">${icon('user-round')} Your profile ${icon('arrow-up-right')}</button></div>
-          <div class="br-home-hero">
-            <div class="br-home-copy">
-              <div class="br-home-kicker" data-hero-reveal>THE INTERACTIVE BRAIN ATLAS</div>
-              <h1 data-hero-reveal>Know the brain.<br><em>See the whole<br>picture.</em></h1>
-              <p data-hero-reveal>A clearer way to learn neuroanatomy. Explore MRI slices, discover the structures within, and turn what you see into what you know.</p>
-              <div class="br-home-actions" data-hero-reveal><button class="br-home-primary" data-go="mriviewer" type="button">Explore anatomy ${icon('arrow-up-right')}</button><button class="br-home-secondary" data-go="quiz" type="button">Test yourself ${icon('arrow-right')}</button></div>
-              <div class="br-home-footnote" data-hero-reveal>${icon('scan-line')} Three planes. One connected understanding.</div>
-            </div>
-            <div class="br-home-visual" data-hero-reveal>
-              <div id="br-home-particles" aria-hidden="true"></div>
-              <div class="br-home-fallback"><img src="${snap(pk(9)).u}" alt="Brain MRI atlas preview"></div>
-              <div id="br-home-stage"></div>
-              <div class="br-home-visual-top"><span class="br-home-figure-label">FIG. 01 / HUMAN ANATOMY</span><div class="br-home-view-tabs" role="group" aria-label="Anatomy visualization"><button type="button" data-visual-mode="brain" aria-pressed="true">Brain</button><button type="button" data-visual-mode="reveal" aria-pressed="false">X-ray reveal</button></div></div>
-              <div class="br-home-visual-bottom"><p data-visual-status role="status">MRI atlas preview</p><div class="br-home-visual-controls"><button type="button" data-turn="-1" aria-label="Rotate brain left">${icon('chevron-left')}</button><button type="button" data-turn="1" aria-label="Rotate brain right">${icon('chevron-right')}</button><button type="button" data-reset-view aria-label="Reset brain view">${icon('rotate-ccw')}</button><button type="button" data-motion-toggle aria-label="Pause animation" aria-pressed="false">${icon('pause')}</button></div></div>
-            </div>
-          </div>
-          <div class="br-home-strip" data-reveal><div>${icon('scan-line')} Explore real MRI slices</div><div>${icon('layers')} Learn through active recall</div><div>${icon('chart-no-axes-combined')} Follow your progress</div></div>
-          <section class="br-home-section" aria-labelledby="br-home-study-title">
-            <div class="br-home-section-head" data-reveal><div><span class="br-home-eyebrow">YOUR LEARNING TOOLKIT</span><h2 id="br-home-study-title">One atlas. More ways to learn.</h2></div><p>From your first look to your next exam.<br>Find the practice that works for you.</p></div>
-            <div class="br-home-modes">${modes.map(c => `<div data-reveal><button class="br-home-mode" data-hover type="button" data-go="${c[0]}"><div class="br-home-mode-image">${sq(c[1], () => '', '100%')}<span class="br-home-mode-num">STUDY / ${c[4]}</span></div><div class="br-home-mode-content"><h3>${icon(c[6])}${c[2]}</h3><p>${c[3]}</p><span class="br-home-mode-link">${c[5]} ${icon('arrow-up-right')}</span></div></button></div>`).join('')}</div>
-          </section>
-          <section class="br-home-atlas" data-reveal>
-            <div class="br-home-atlas-image">${sq(pk(17), () => '', '100%')}<span class="br-home-atlas-label">SECTIONAL ANATOMY / MRI</span><div class="br-home-atlas-planes"><span>Axial</span><span>Coronal</span><span>Sagittal</span></div></div>
-            <div><span class="br-home-eyebrow">SEE HOW IT ALL CONNECTS</span><h2>A new perspective.<br>In every plane.</h2><p>Move through the brain one slice at a time. Connect structures across axial, coronal, and sagittal views to build your spatial understanding.</p><ul><li>${icon('scan-line')} Linked views across three anatomical planes</li><li>${icon('brain')} Brain structures and anatomical landmarks</li><li>${icon('move')} Slice, zoom, and explore at your own pace</li></ul><button class="br-home-secondary" data-go="mriviewer" type="button">Open Sectional Anatomy ${icon('arrow-up-right')}</button></div>
-          </section>
-          <section class="br-home-progress" data-reveal><div><span class="br-home-eyebrow">YOUR PERSONAL STUDY SPACE</span><h2>Small steps. Lasting knowledge.</h2><p>Every session adds up. Pick up where you left off and see your learning take shape.</p><button type="button" class="br-home-text-link" data-go="progress">View your progress ${icon('arrow-up-right')}</button></div><div class="br-home-stats"><div><strong>${answered}</strong><span>MRI questions<br>answered</span></div><div><strong>${answered ? Math.round(correct / answered * 100) + '%' : '—'}</strong><span>MRI answer<br>accuracy</span></div><div><strong>${reviewed}</strong><span>Flashcard<br>reviews</span></div></div></section>
-          <div class="br-home-recent" data-reveal>${bmHist()}</div>
-          <div class="br-home-bottom-cta" data-reveal><h2>Your next discovery starts here.</h2><p>Take a closer look. Build a deeper understanding.</p><button type="button" class="br-home-primary" data-go="mriviewer">Start exploring ${icon('arrow-up-right')}</button></div>
-          <footer class="br-home-footer"><span>BRTOMOX / BRAIN ANATOMY ATLAS</span><span>EXPLORE. UNDERSTAND. REMEMBER.</span></footer>
-        </section>`;
-        $('#br-home-name').textContent = String(U.name || 'Guest').split(/\s+/)[0];
-        $$('.br-home [data-go]').forEach(b => b.onclick = () => go(b.dataset.go));
+        app.innerHTML = `<section class="ref-window bm-home"><div class="bm-wrow">${av(U, 56)}<h1 class="bm-welcome" id="bm-welcome"></h1><button class="secondary" id="bm-edit" type="button">✎ Edit profile</button></div>${bmHist()}<h2 class="bm-mode">Brain mode</h2><div class="bm-cards">${cards.map(c => `<button class="bm-card" type="button" data-go="${c[0]}">${sq(c[1], c[2], '100%')}<span>${c[3]}</span></button>`).join('')}</div></section>`;
+        $('#bm-welcome').textContent = `Welcome to ${U.name || 'Guest'}`;
+        $$('.bm-home [data-go]').forEach(button => button.onclick = () => go(button.dataset.go));
         $('#bm-edit').onclick = () => window.BRprof();
-        $('.br-home-recent .bm-hist').textContent = (ST.log || []).length ? 'Recent activity' : 'Explore a topic';
         let disposed = false, stop = null;
         const start = () => { if (!disposed && window.BRHomeUI && !stop) stop = window.BRHomeUI.mount($('.br-home')); };
         if (window.BRHomeUI) start(); else window.addEventListener('br-home-ready', start, { once: true });
